@@ -26,49 +26,48 @@ structure Projector (C A Vc Va: Type) :=
     (project_a : A → Va)
 
 
-namespace non_blocking
+namespace complete
+variables (C A : Type) (str : STR C A)
 
-open STR
+def is_nonblocking : Prop := ∀ c a, a ∈ str.actions c → str.execute c a ≠ ∅
+
 structure NonBlockingSTR 
-    (C A : Type)    
 extends STR C A :=
-    (execute_does_not_block : 
-        ∀ c a, 
-            a ∈ actions c → execute c a ≠ ∅
-    )
+    (nonblocking : is_nonblocking C A to_STR)
 
-structure CompleteSTR₁ 
-    (C A : Type)
+def is_actions_complete : Prop :=  ∀ c, str.actions c ≠ ∅
+
+structure CompleteNonBlockingSTR
 extends NonBlockingSTR C A :=
-    (no_deadlock : ∀ c, actions c ≠ ∅)
+    (complete : is_actions_complete C A to_STR)
 
-structure CompleteSTR₀
-    (C A : Type)
+def is_complete : Prop := 
+    ∀ c, 
+            str.actions c ≠ ∅ 
+            ∧ ∃ a, a ∈ str.actions c → str.execute c a ≠ ∅
+
+structure CompleteSTR
 extends STR C A :=
-    (no_deadlock : 
-        ∀ c, 
-            actions c ≠ ∅ 
-            ∧ ∃ a, a ∈ actions c → execute c a ≠ ∅
-    )
+    (complete : is_complete C A to_STR)
 
 def CompleteNonBlocking2Complete 
-    (C A : Type) 
     [hA : inhabited A]
-    (str₁ : CompleteSTR₁ C A) 
-: (CompleteSTR₀ C A) :=
+    (str₁ : CompleteNonBlockingSTR C A) 
+: (CompleteSTR C A) :=
 {
     initial := str₁.initial,
     actions := str₁.actions,
     execute := str₁.execute,
-    no_deadlock := 
+    complete := 
         begin
-            intros, 
+            unfold is_complete,
+            intro,
             simp,
             split,
-                apply str₁.no_deadlock,
-                existsi arbitrary A, apply str₁.execute_does_not_block,                 
+                apply str₁.complete,
+                existsi arbitrary A, apply str₁.nonblocking,
         end,
 }
 
-end non_blocking
+end complete
 end str
