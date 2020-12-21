@@ -1,3 +1,5 @@
+import init.data.set data.set
+
 namespace str
 
 -- Semantic Transition Relation structure
@@ -23,4 +25,50 @@ structure Projector (C A Vc Va: Type) :=
     (project_c : C → Vc) 
     (project_a : A → Va)
 
+
+namespace non_blocking
+
+open STR
+structure NonBlockingSTR 
+    (C A : Type)    
+extends STR C A :=
+    (execute_does_not_block : 
+        ∀ c a, 
+            a ∈ actions c → execute c a ≠ ∅
+    )
+
+structure CompleteSTR₁ 
+    (C A : Type)
+extends NonBlockingSTR C A :=
+    (no_deadlock : ∀ c, actions c ≠ ∅)
+
+structure CompleteSTR₀
+    (C A : Type)
+extends STR C A :=
+    (no_deadlock : 
+        ∀ c, 
+            actions c ≠ ∅ 
+            ∧ ∃ a, a ∈ actions c → execute c a ≠ ∅
+    )
+
+def CompleteNonBlocking2Complete 
+    (C A : Type) 
+    [hA : inhabited A]
+    (str₁ : CompleteSTR₁ C A) 
+: (CompleteSTR₀ C A) :=
+{
+    initial := str₁.initial,
+    actions := str₁.actions,
+    execute := str₁.execute,
+    no_deadlock := 
+        begin
+            intros, 
+            simp,
+            split,
+                apply str₁.no_deadlock,
+                existsi arbitrary A, apply str₁.execute_does_not_block,                 
+        end,
+}
+
+end non_blocking
 end str
