@@ -29,18 +29,23 @@ structure Projector (C A Vc Va: Type) :=
 namespace complete
 variables (C A : Type) (str : STR C A)
 
+-- a STR is nonblocking if the execute step always produces at least on target
 def is_nonblocking : Prop := ∀ c a, a ∈ str.actions c → str.execute c a ≠ ∅
 
+-- a nonblocking STR is a STR with the proof that the execute always produces a non empty set of targets
 structure NonBlockingSTR 
 extends STR C A :=
     (nonblocking : is_nonblocking C A to_STR)
 
+-- a STR is "actions-complete" if it has at least one action for any configurations 
 def is_actions_complete : Prop :=  ∀ c, str.actions c ≠ ∅
 
-structure CompleteNonBlockingSTR
+-- a complete nonblocking STR is a nonblocking STR with the proof that is actions-complete
+structure ActionCompleteNonBlockingSTR
 extends NonBlockingSTR C A :=
     (complete : is_actions_complete C A to_STR)
 
+-- a STR is complete if from any configuration we can get at least one target
 def is_complete : Prop := 
     ∀ c, 
             str.actions c ≠ ∅ 
@@ -50,9 +55,10 @@ structure CompleteSTR
 extends STR C A :=
     (complete : is_complete C A to_STR)
 
+-- an action-complete nonblocking STR is a also a complete STR
 def CompleteNonBlocking2Complete 
     [hA : inhabited A]
-    (str₁ : CompleteNonBlockingSTR C A) 
+    (str₁ : ActionCompleteNonBlockingSTR C A) 
 : (CompleteSTR C A) :=
 {
     initial := str₁.initial,
