@@ -82,6 +82,7 @@ def add_implicit_steps
 theorem add_imp_rem_deadlock 
   (C: Type)
   (A: Type)
+  [hA : inhabited A]
   (str : STR C A)
   (deadlock : ¬ no_deadlock C A str)
   -- [∀ c, decidable (str.actions c = ∅)]
@@ -93,17 +94,17 @@ theorem add_imp_rem_deadlock
 begin
   simp * at *, intro, simp at *, split_ifs, 
     finish *, 
-  --   split, exact not_empty_when_no_deadlock C A str c h,
-  
-  --   revert h, simp at *, unfold deadlock_configuration, 
-  --   refine classical.skolem.mpr _, refine ex_of_psig _, refine ⟨_, _⟩, 
-  --   intro, exact completed.deadlock,
-    
-  -- refine imp_and_distrib.mpr _, split, 
-  -- revert deadlock, unfold no_deadlock,
+    split, sorry,
 
-  -- simp * at *, intros, revert ᾰ_1, refine not_imp.mpr _, split, 
-  -- revert ᾰ, refine imp_or_distrib.mpr _, refine or.inl _, safe *, revert ᾰ_1,
+    revert h, simp at *, unfold deadlock_configuration, 
+    refine classical.skolem.mpr _, refine ex_of_psig _, refine ⟨_, _⟩, 
+  intro, exact completed.deadlock,
+    
+  refine imp_and_distrib.mpr _, split, 
+  revert deadlock, unfold no_deadlock,
+
+  simp * at *, intros, revert ᾰ_1, refine not_imp.mpr _, split, 
+  revert ᾰ, refine imp_or_distrib.mpr _, refine or.inl _, safe *, sorry,
   -- -- hint, 
   -- refine not_imp.mpr _, norm_num, revert ᾰ, exact set.not_nonempty_iff_eq_empty.mp, simp [not_nonempty_iff_eq_empty], 
   
