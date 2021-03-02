@@ -25,6 +25,12 @@ structure Projector (C A Vc Va: Type) :=
     (project_c : C → Vc) 
     (project_a : A → Va)
 
+structure SLI (C A L Vc Va : Type) :=
+    (str  : STR C A)
+    (ape  : APE  C A L)
+    (acc  : Acc C)
+    (proj : Projector C A Vc Va)
+
 
 namespace complete
 variables (C A : Type) (str : STR C A)
@@ -49,7 +55,7 @@ extends NonBlockingSTR C A :=
 def is_complete : Prop := 
     ∀ c, 
             str.actions c ≠ ∅ 
-            ∧ ∃ a, a ∈ str.actions c → str.execute c a ≠ ∅
+            ∧ ∃ a, a ∈ str.actions c -> str.execute c a ≠ ∅
 
 structure CompleteSTR
 extends STR C A :=
@@ -71,7 +77,7 @@ def CompleteNonBlocking2Complete
             simp,
             split,
                 apply str₁.complete,
-                existsi arbitrary A, apply str₁.nonblocking,
+                existsi arbitrary A,  apply str₁.nonblocking,
         end,
 }
 
