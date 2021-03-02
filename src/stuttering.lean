@@ -3,14 +3,16 @@ namespace operators
 open str 
 -- Type to know if some actions are available or if there is a deadlock
 universe u
-inductive completed (α : Type u)
+inductive completed (α : Type _)
 	| deadlock {} : completed
 	| some   {} : α → completed
 
 -- Operator used to complete a STR by adding implicit transitions
+-- this operator is applicable only if the execution cannot deadlock
 def add_implicit_transitions
     (C A : Type)
     (str : STR C A)
+    (h   : ∀ c, ∃ a ∈ str.actions c, str.execute c a ≠ ∅)
     [∀ c, decidable (str.actions c = ∅)]
 : STR C (completed A) := 
 { 
@@ -22,7 +24,6 @@ def add_implicit_transitions
     execute := λ c oa, match oa with
         | completed.deadlock  := singleton c
         | completed.some a := { oc | ∀ t ∈ str.execute c a, oc = t }
-        
     end
 } 
 
@@ -61,17 +62,18 @@ def deadlock_configuration
 def add_implicit_steps
   (C A : Type)
   (str : STR C A)
-  -- [∀ c, decidable (str.actions c = ∅)]
-  -- [∀ c, decidable (∀ (a : A), a ∈ str.actions c → str.execute c a = ∅)]
-  [∀ c, decidable (deadlock_configuration str c)]
+  [∀ c, decidable (str.actions c = ∅)]
+  [∀ c, decidable (∀ a ∈ str.actions c, str.execute c a = ∅)]
 : STR C (completed A) :=
 {
   initial := str.initial,
   actions := λ c, 
-              if h : deadlock_configuration str c then 
+              if  str.actions c = ∅ 
+                ∨ ∀ a ∈ str.actions c, str.execute c a = ∅ 
+              then 
                   singleton completed.deadlock
-                else
-                  { x | ∀ a ∈ str.actions c, x = completed.some a },
+              else
+                  { oa | ∀ a ∈ str.actions c, oa = (completed.some a)},
   execute := λ c oa, match oa with
         | completed.deadlock  := singleton c
         | completed.some a := { oc | ∀ t ∈ str.execute c a, oc = t }
@@ -85,8 +87,8 @@ theorem add_imp_rem_deadlock
   [hA : inhabited A]
   (str : STR C A)
   (deadlock : ¬ no_deadlock C A str)
-  -- [∀ c, decidable (str.actions c = ∅)]
-  -- [∀ c, decidable (∀ (a : A), a ∈ str.actions c → str.execute c a = ∅)]
+  [∀ c, decidable (str.actions c = ∅)]
+  [∀ c, decidable (∀ (a : A), a ∈ str.actions c → str.execute c a = ∅)]
   [∀ c, decidable (deadlock_configuration str c)]
 : 
   no_deadlock C (completed A) (add_implicit_steps C A str)
@@ -96,7 +98,7 @@ begin
     finish *, 
     split, sorry,
 
-    revert h, simp at *, unfold deadlock_configuration, 
+    revert h, simp at *, 
     refine classical.skolem.mpr _, refine ex_of_psig _, refine ⟨_, _⟩, 
   intro, exact completed.deadlock,
     
