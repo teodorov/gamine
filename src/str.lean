@@ -11,25 +11,40 @@ structure STR (C A : Type) :=
 -- Atomic Proposition Evaluator structure
 structure APE (C A L : Type) :=
     (eval : L → C → A → C → bool)
+def APE' (C A L : Type) := L → C → A → C → bool
 
 -- Atomic Propositon Collector structure
 structure APC (C A L : Type) :=
     (eval : C → A → set L)
+def APC' (C A L : Type):= C → A → L
 
 -- Accepting structure
 structure Acc (C : Type) :=
     (is_accepting : C -> Prop)
+
+def Acc' (C : Type) := C → Prop
 
 --projections
 structure Projector (C A Vc Va: Type) :=
     (project_c : C → Vc) 
     (project_a : A → Va)
 
-structure SLI (C A L Vc Va : Type) :=
+structure SLI (C A L₀ L₁ : Type) :=
     (str  : STR C A)
-    (ape  : APE  C A L)
-    (acc  : Acc C)
-    (proj : Projector C A Vc Va)
+    (ape  : L₀ → C → A → C → bool)
+    (apc  : C → A → set L₁)
+    (acc  : C → bool)
+    -- (πc   : C → array byte)
+    -- (πa   : C → array byte)
+
+
+structure SLI' (C A L₀ L₁ : Type) :=
+    (str  : STR C A)
+    (ape  : L₀ → C → A → C → bool)
+    (apc  : C → A → L₁)
+    (acc  : C → bool)
+    -- (πc   : C → array byte)
+    -- (πa   : C → array byte)
 
 
 namespace complete
@@ -72,12 +87,10 @@ def CompleteNonBlocking2Complete
     execute := str₁.execute,
     complete := 
         begin
-            unfold is_complete,
-            intro,
-            simp,
+            intro, simp,
             split,
-                apply str₁.complete,
-                existsi arbitrary A,  apply str₁.nonblocking,
+                { apply str₁.complete },
+                { existsi arbitrary A,  apply str₁.nonblocking }
         end,
 }
 

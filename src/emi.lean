@@ -38,7 +38,7 @@ do set_configuration c, execute_step t, x ← get_configuration, return x
 
 open str 
 -- Conversion from EMI to STR
-def EMI2STR (emi : EMI) : @STR EMIDynamicMemory EMITransition  := 
+def EMI2STR (emi : EMI) : STR EMIDynamicMemory EMITransition  := 
 { 
     initial := { prod.fst (emi_initial.run emi) },
     actions := λ c, prod.fst ((emi_actions c).run emi),

@@ -15,7 +15,19 @@ def STR2TR
 : @TR C  := 
 { 
     initial := str.initial,
-    next := λ c, { n | ∀ a ∈ str.actions c, ∀ t ∈ str.execute c a, n = t },
+    next := λ c, { t | ∀ a ∈ str.actions c, t ∈ str.execute c a },
     accepting := acc.is_accepting
 }
+
+def STR2TR'
+    (C A : Type)
+    (str : STR C A)
+    (acc : Acc' C) 
+: @TR C := 
+{ 
+    initial := str.initial,
+    next := λ c, { t | ∀ a ∈ str.actions c, t ∈ str.execute c a },
+    accepting := acc
+}
 end str2tr
+ 

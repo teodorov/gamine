@@ -23,7 +23,7 @@ def add_implicit_transitions
             { oa | ∀ a ∈ str.actions c, oa = completed.some a }, 
     execute := λ c oa, match oa with
         | completed.deadlock  := singleton c
-        | completed.some a := { oc | ∀ t ∈ str.execute c a, oc = t }
+        | completed.some a := str.execute c a
     end
 } 
 
@@ -76,7 +76,29 @@ def add_implicit_steps
                   { oa | ∀ a ∈ str.actions c, oa = (completed.some a)},
   execute := λ c oa, match oa with
         | completed.deadlock  := singleton c
-        | completed.some a := { oc | ∀ t ∈ str.execute c a, oc = t }
+        | completed.some a := str.execute c a
+        end 
+}
+
+def actions_empty
+  (C A : Type) (str : STR C A) (c : C) := 
+str.actions c = ∅
+def all_executions_block (C A : Type) (str : STR C A) (c : C) :=
+(∀ a ∈ str.actions c, str.execute c a = ∅)
+
+def add_implicit_steps'
+  (C A : Type)
+  (str : STR C A)
+  -- [∀ c, decidable (str.actions c = ∅)]
+  -- [∀ c, decidable (∀ a ∈ str.actions c, str.execute c a = ∅)]
+: STR C (completed A) :=
+{
+  initial := str.initial,
+  actions := λ c, { a | (str.actions c = ∅ ∨ (∀ a ∈ str.actions c, str.execute c a = ∅) → a = completed.deadlock) 
+                        ∨ ∀ oa ∈ str.actions c, a = (completed.some oa)}, 
+  execute := λ c oa, match oa with
+        | completed.deadlock  := singleton c
+        | completed.some a := str.execute c a
         end 
 }
 
@@ -106,11 +128,12 @@ begin
   revert deadlock, unfold no_deadlock,
 
   simp * at *, intros, revert ᾰ_1, refine not_imp.mpr _, split, 
-  revert ᾰ, refine imp_or_distrib.mpr _, refine or.inl _, safe *, sorry,
+  revert ᾰ, refine imp_or_distrib.mpr _, refine or.inl _, safe *,
+   sorry,
   -- -- hint, 
   -- refine not_imp.mpr _, norm_num, revert ᾰ, exact set.not_nonempty_iff_eq_empty.mp, simp [not_nonempty_iff_eq_empty], 
   
-  sorry,
+  sorry, sorry
 end
 
 end operators
