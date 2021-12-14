@@ -43,6 +43,30 @@ def NextPredicate (C : Type)
 end frontier
 
 namespace recursive
+
+structure M (C: Type) := 
+    (ini : set C)
+    (next : set C → set C)
+
+meta
+def reach{C: Type} 
+    [h₀ : ∀ F : set C, decidable (F = ∅)]
+    : set C → set C → M C → set C
+| F K M :=
+    if F = ∅ then K else 
+    let
+        A := {x | ∃ pF ∈ (𝒫 F), pF ≠ ∅ ∧ x ∈ pF},
+        N := M.next A,
+        F' := (F \ A) ∪ (N \ K),
+        K' := K ∪ N
+    in
+        reach F' K' M
+-- using_well_founded by {
+--     sorry
+-- }
+            
+                
+
 meta
 def safe₀ {C : Type}
     [h₀ : ∀ F :set C, decidable (F ≠ ∅)]
