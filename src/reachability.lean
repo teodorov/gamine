@@ -1,4 +1,5 @@
 import tr
+import data.fintype.basic
 open tr
 
 namespace frontier
