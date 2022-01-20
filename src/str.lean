@@ -2,11 +2,37 @@ import init.data.set data.set
 
 namespace str
 
--- Semantic Transition Relation structure
+/-!
+    Semantic Transition Relation structure
+    `actions` captures the `ENABLED` relation between the configurations and the actions
+    in other words the `actions` functions returns the set of `ENABLED` action in a configuration
+-/
 structure STR (C A : Type) :=
     (initial : set C)
     (actions : C → set A) 
     (execute : C → A → set C)
+
+/-!
+    The step predicate defines the an a-step. 
+    For a pair `c` `c'` of configurations and an atomic action `a`
+    the step predicate holds if executing the action a in c produces the configuration c'
+    Relation to **TLA+**: This matches the notion of 𝒜-step 
+-/
+def step {C A : Type} (s : STR C A) : C → A → C → Prop
+| c a c' := ∃ c a c', a ∈ s.actions c ∧ c' ∈ (s.execute c a)
+
+notation c `—{` a `}` s `→` c' := step s c a c' 
+/-!
+    Lamport, Leslie. "The temporal logic of actions." 
+    ACM Transactions on Programming Languages and Systems (TOPLAS) 
+    16, no. 3 (1994): 872-923.
+
+    For any atomic action `a`, enabled c a holds for the configurations where it is 
+    possible to perfom the action `a`.
+    Relation to **TLA+**: The enabled predicate matches the definition of ENABLED
+-/
+def enabled{C A : Type} (s : STR C A) : C → A → Prop 
+| c a := ∃ c', step s c a c'
 
 -- Atomic Proposition Evaluator structure
 structure APE (C A L : Type) :=
@@ -21,7 +47,6 @@ def APC' (C A L : Type):= C → A → L
 -- Accepting structure
 structure Acc (C : Type) :=
     (is_accepting : C -> Prop)
-
 def Acc' (C : Type) := C → Prop
 
 --projections
@@ -58,7 +83,7 @@ structure NonBlockingSTR
 extends STR C A :=
     (nonblocking : is_nonblocking C A to_STR)
 
--- a STR is "actions-complete" if it has at least one action for any configurations 
+-- a STR is "actions-complete" if it has at least one enabled action for any configurations 
 def is_actions_complete : Prop :=  ∀ c, str.actions c ≠ ∅
 
 -- a complete nonblocking STR is a nonblocking STR with the proof that is actions-complete
